@@ -1,4 +1,5 @@
-const C = "haraj-nadira-v3";
+const C = "haraj-nadira-v4";
+
 const A = [
   "./",
   "./index.html",
@@ -6,7 +7,8 @@ const A = [
   "./app.js",
   "./config.js",
   "./manifest.webmanifest",
-  "./icon.png"
+  "./icon-192.png",
+  "./icon-512.png"
 ];
 
 self.addEventListener("install", e => {
