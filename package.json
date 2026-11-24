@@ -1,0 +1,11 @@
+{
+  "name": "haraj-nadira",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^11.1.9"
+  }
+}
