@@ -1,8 +1,98 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#174d3f"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><title>حراج النادرة</title><link rel="stylesheet" href="style.css"></head><body>
-<header><div><small>سوقك الموثوق</small><h1>حراج النادرة</h1></div><button id="adminOpen">الإدارة</button></header>
-<main><section class="hero" id="hero"><img id="heroImg" class="hero-img" alt="حراج النادرة" decoding="async"><div class="hero-shade"></div><div class="hero-text"><small><span class="star">✦</span> اكتشف ما يستحق الاقتناء</small><h2>منتجات نادرة، اختيارات مميزة</h2><p>تصفح إعلانات موثوقة من مدن اليمن</p><a class="hero-cta" href="#latest">تصفح الإعلانات</a></div></section>
-<div class="search"><input id="search" placeholder="ابحث عن سيارة، هاتف، منزل..."><button id="refresh">تحديث</button></div>
-<h2>تصفح حسب التصنيف</h2><nav id="cats"></nav><h2 id="latest">أحدث الإعلانات <span id="count"></span></h2><div id="status">جارٍ تحميل الإعلانات...</div><section id="items"></section></main>
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#174d3f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon.png">
+<title>حراج النادرة</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div><small>سوقك الموثوق</small><h1>حراج النادرة</h1></div>
+  <button id="adminOpen">الإدارة</button>
+</header>
+
+<main>
+<section class="hero" id="hero">
+  <img id="heroImg" class="hero-img" alt="حراج النادرة" decoding="async">
+  <div class="hero-shade"></div>
+  <div class="hero-text">
+    <small><span class="star">✦</span> اكتشف ما يستحق الاقتناء</small>
+    <h2>منتجات نادرة، اختيارات مميزة</h2>
+    <p>تصفح إعلانات موثوقة من مدن اليمن</p>
+    <a class="hero-cta" href="#latest">تصفح الإعلانات</a>
+  </div>
+</section>
+
+<div class="search">
+  <input id="search" placeholder="ابحث عن سيارة، هاتف، منزل...">
+  <button id="refresh">تحديث</button>
+</div>
+
+<h2>تصفح حسب التصنيف</h2>
+<nav id="cats"></nav>
+
+<h2 id="latest">أحدث الإعلانات <span id="count"></span></h2>
+<div id="status">جارٍ تحميل الإعلانات...</div>
+<section id="items"></section>
+</main>
+
 <footer>حراج النادرة — سوقك لكل جديد ومستعمل</footer>
-<div id="modal" class="hidden"><div class="panel"><button id="close">×</button><h2>لوحة الإدارة</h2><div id="loginBox"><input id="email" placeholder="البريد الإلكتروني"><input id="password" type="password" placeholder="كلمة المرور"><button id="login">تسجيل الدخول</button><p id="loginMsg"></p></div><div id="adminBox" class="hidden"><button id="new">إضافة إعلان</button><div class="hero-admin"><h3>الصورة الرئيسية للواجهة</h3><p class="meta">اختر صورة من هاتفك لتظهر أعلى الصفحة. يُفضّل صورة عرضية (أفقية).</p><img id="heroPreview" class="hidden" alt="معاينة الصورة الرئيسية"><input id="heroFile" type="file" accept="image/*"><div class="row"><button id="heroSave">رفع الصورة</button><button id="heroRemove" class="ghost">إزالة الصورة</button></div><p id="heroMsg"></p></div><div id="adminItems"></div><button id="logout">تسجيل الخروج</button></div><div id="form" class="hidden"><input id="title" placeholder="اسم المنتج"><select id="category"></select><input id="price" type="number" placeholder="السعر بالريال"><select id="condition"><option>جديد</option><option>مستعمل</option></select><input id="city" placeholder="المدينة"><textarea id="description" placeholder="الوصف"></textarea><input id="photo" type="file" accept="image/*"><button id="save">حفظ</button><button id="cancel">إلغاء</button><p id="formMsg"></p></div></div></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="app.js"></script></body></html>
+
+<div id="modal" class="hidden">
+  <div class="panel">
+    <button id="close">×</button>
+    <h2>لوحة الإدارة</h2>
+
+    <div id="loginBox">
+      <input id="email" placeholder="البريد الإلكتروني">
+      <input id="password" type="password" placeholder="كلمة المرور">
+      <button id="login">تسجيل الدخول</button>
+      <p id="loginMsg"></p>
+    </div>
+
+    <div id="adminBox" class="hidden">
+      <button id="new">إضافة إعلان</button>
+
+      <div class="hero-admin">
+        <h3>الصورة الرئيسية للواجهة</h3>
+        <p class="meta">اختر صورة من هاتفك لتظهر أعلى الصفحة. يُفضّل صورة عرضية (أفقية).</p>
+        <img id="heroPreview" class="hidden" alt="معاينة الصورة الرئيسية">
+        <input id="heroFile" type="file" accept="image/*">
+        <div class="row">
+          <button id="heroSave">رفع الصورة</button>
+          <button id="heroRemove" class="ghost">إزالة الصورة</button>
+        </div>
+        <p id="heroMsg"></p>
+      </div>
+
+      <div id="adminItems"></div>
+      <button id="logout">تسجيل الخروج</button>
+    </div>
+
+    <div id="form" class="hidden">
+      <input id="title" placeholder="اسم المنتج">
+      <select id="category"></select>
+      <input id="price" type="number" placeholder="السعر بالريال">
+      <select id="condition">
+        <option>جديد</option>
+        <option>مستعمل</option>
+      </select>
+      <input id="city" placeholder="المدينة">
+      <textarea id="description" placeholder="الوصف"></textarea>
+      <input id="photo" type="file" accept="image/*">
+      <button id="save">حفظ</button>
+      <button id="cancel">إلغاء</button>
+      <p id="formMsg"></p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
