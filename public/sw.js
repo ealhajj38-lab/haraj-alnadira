@@ -1,1 +1,41 @@
-const C="haraj-nadira-v2",A=["./","./index.html","./style.css","./app.js","./config.js","./manifest.webmanifest","./icon.svg"];self.addEventListener("install",e=>e.waitUntil(caches.open(C).then(c=>c.addAll(A))));self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(a=>Promise.all(a.filter(x=>x!==C).map(x=>caches.delete(x))))));self.addEventListener("fetch",e=>{if(e.request.method==="GET"&&new URL(e.request.url).origin===location.origin)e.respondWith(fetch(e.request).then(r=>{let q=r.clone();caches.open(C).then(c=>c.put(e.request,q));return r}).catch(()=>caches.match(e.request)))})
+const C = "haraj-nadira-v3";
+const A = [
+  "./",
+  "./index.html",
+  "./style.css",
+  "./app.js",
+  "./config.js",
+  "./manifest.webmanifest",
+  "./icon.png"
+];
+
+self.addEventListener("install", e => {
+  e.waitUntil(
+    caches.open(C).then(c => c.addAll(A))
+  );
+});
+
+self.addEventListener("activate", e => {
+  e.waitUntil(
+    caches.keys().then(a =>
+      Promise.all(
+        a.filter(x => x !== C).map(x => caches.delete(x))
+      )
+    )
+  );
+});
+
+self.addEventListener("fetch", e => {
+  if (
+    e.request.method === "GET" &&
+    new URL(e.request.url).origin === location.origin
+  ) {
+    e.respondWith(
+      fetch(e.request).then(r => {
+        let q = r.clone();
+        caches.open(C).then(c => c.put(e.request, q));
+        return r;
+      }).catch(() => caches.match(e.request))
+    );
+  }
+});
