@@ -10,13 +10,120 @@ function form(x=null){editing=x;$("title").value=x?.title||"";$("category").valu
 $("adminOpen").onclick=()=>{$("modal").classList.remove("hidden");$("loginMsg").textContent="";admin()};$("close").onclick=()=>$("modal").classList.add("hidden");$("login").onclick=async()=>{let r=await db.auth.signInWithPassword({email:$("email").value,password:$("password").value});if(r.error){$("loginMsg").textContent=r.error.message;return}admin()};$("new").onclick=()=>form();$("cancel").onclick=()=>{$("form").classList.add("hidden");$("adminBox").classList.remove("hidden")};$("logout").onclick=async()=>{await db.auth.signOut();$("adminBox").classList.add("hidden");$("loginBox").classList.remove("hidden")};
 $("save").onclick=async()=>{let image=$("photo").files[0],image_url=editing?.image_url||null;if(image){let path=crypto.randomUUID()+"-"+image.name.replace(/[^a-z0-9.]/gi,"");let u=await db.storage.from("product-images").upload(path,image);if(u.error){$("formMsg").textContent=u.error.message;return}image_url=db.storage.from("product-images").getPublicUrl(path).data.publicUrl}let data={title:$("title").value,category:$("category").value,price:Number($("price").value||0),condition:$("condition").value,city:$("city").value,description:$("description").value,image_url,is_active:true};let r=editing?await db.from("listings").update(data).eq("id",editing.id):await db.from("listings").insert(data);if(r.error){$("formMsg").textContent=r.error.message;return}$("form").classList.add("hidden");$("adminBox").classList.remove("hidden");await load();admin()};
 
-// ===== الصورة الرئيسية للواجهة =====
+// ===== الصورة الرئيسية باستخدام Supabase Storage =====
+const HERO_BUCKET="product-images";
+const HERO_PATH="site/hero.jpg";
 const heroMsg=t=>$("heroMsg").textContent=t;
-function showHero(v){let h=$("hero"),img=$("heroImg"),pv=$("heroPreview");if(!v){h.classList.remove("has-img");img.removeAttribute("src");pv.classList.add("hidden");pv.removeAttribute("src");return}let url="/api/hero?v="+encodeURIComponent(v);img.onload=()=>h.classList.add("has-img");img.onerror=()=>h.classList.remove("has-img");img.src=url;pv.src=url;pv.classList.remove("hidden")}
-async function loadHero(){try{let r=await fetch("/api/hero/info",{cache:"no-store"});if(!r.ok)throw 0;showHero((await r.json()).version)}catch{}}
-function shrink(file,max=1800){return new Promise(res=>{let u=URL.createObjectURL(file),im=new Image();im.onload=()=>{let k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement("canvas");c.width=Math.round(im.naturalWidth*k);c.height=Math.round(im.naturalHeight*k);let x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>res(b&&(b.size<file.size||!/^image\/(jpeg|png|webp|gif|avif)$/.test(file.type))?b:file),"image/jpeg",.86)};im.onerror=()=>{URL.revokeObjectURL(u);res(file)};im.src=u})}
-async function heroRequest(method,body,type){let s=db&&(await db.auth.getSession()).data.session;if(!s)throw new Error("انتهت الجلسة، سجّل الدخول مرة أخرى.");let h={Authorization:"Bearer "+s.access_token};if(type)h["Content-Type"]=type;let r=await fetch("/api/hero",{method,headers:h,body});let d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"تعذر تنفيذ العملية، حاول مرة أخرى.");return d}
-$("heroFile").onchange=()=>{let f=$("heroFile").files[0];if(!f)return;let pv=$("heroPreview");pv.src=URL.createObjectURL(f);pv.classList.remove("hidden");heroMsg("اضغط «رفع الصورة» لاعتمادها في الواجهة.")};
-$("heroSave").onclick=async()=>{let f=$("heroFile").files[0];if(!f){heroMsg("اختر صورة من هاتفك أولاً.");return}let b=$("heroSave");b.disabled=true;heroMsg("جارٍ تجهيز ورفع الصورة...");try{let img=await shrink(f),d=await heroRequest("PUT",img,img.type||"image/jpeg");$("heroFile").value="";showHero(d.version);heroMsg("تم تحديث الصورة الرئيسية ✓")}catch(e){heroMsg(e.message)}b.disabled=false};
-$("heroRemove").onclick=async()=>{if(!confirm("إزالة الصورة الرئيسية والعودة للتصميم الافتراضي؟"))return;try{await heroRequest("DELETE");showHero(null);heroMsg("تمت إزالة الصورة.")}catch(e){heroMsg(e.message)}};
+
+function heroUrl(){
+return db.storage.from(HERO_BUCKET).getPublicUrl(HERO_PATH).data.publicUrl
+}
+
+function showHero(v){
+let h=$("hero"),img=$("heroImg"),pv=$("heroPreview");
+if(!v){
+h.classList.remove("has-img");
+img.removeAttribute("src");
+pv.classList.add("hidden");
+pv.removeAttribute("src");
+return
+}
+let url=heroUrl()+"?v="+encodeURIComponent(v);
+img.onload=()=>h.classList.add("has-img");
+img.onerror=()=>h.classList.remove("has-img");
+img.src=url;
+pv.src=url;
+pv.classList.remove("hidden")
+}
+
+async function isCurrentAdmin(){
+let s=await db.auth.getSession();
+let current=s.data.session;
+if(!current)throw new Error("انتهت الجلسة، سجّل الدخول مرة أخرى.");
+let a=await db.from("admin_users").select("user_id").eq("user_id",current.user.id).maybeSingle();
+if(a.error||!a.data)throw new Error("هذا الحساب غير معتمد كمدير.");
+}
+
+async function loadHero(){
+try{
+let r=await db.storage.from(HERO_BUCKET).list("site",{search:"hero.jpg"});
+if(r.error)throw r.error;
+let found=(r.data||[]).find(x=>x.name==="hero.jpg");
+showHero(found?found.updated_at||found.created_at||Date.now():null)
+}catch(e){
+console.error("Hero load:",e)
+}
+}
+
+function shrink(file,max=1800){
+return new Promise(res=>{
+let u=URL.createObjectURL(file),im=new Image();
+im.onload=()=>{
+let k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));
+let c=document.createElement("canvas");
+c.width=Math.round(im.naturalWidth*k);
+c.height=Math.round(im.naturalHeight*k);
+let x=c.getContext("2d");
+x.fillStyle="#fff";
+x.fillRect(0,0,c.width,c.height);
+x.drawImage(im,0,0,c.width,c.height);
+URL.revokeObjectURL(u);
+c.toBlob(b=>res(b||file),"image/jpeg",.86)
+};
+im.onerror=()=>{
+URL.revokeObjectURL(u);
+res(file)
+};
+im.src=u
+})
+}
+
+$("heroFile").onchange=()=>{
+let f=$("heroFile").files[0];
+if(!f)return;
+let pv=$("heroPreview");
+pv.src=URL.createObjectURL(f);
+pv.classList.remove("hidden");
+heroMsg("اضغط «رفع الصورة» لاعتمادها في الواجهة.")
+};
+
+$("heroSave").onclick=async()=>{
+let f=$("heroFile").files[0];
+if(!f){heroMsg("اختر صورة من هاتفك أولاً.");return}
+let b=$("heroSave");
+b.disabled=true;
+heroMsg("جارٍ تجهيز ورفع الصورة...");
+try{
+await isCurrentAdmin();
+let img=await shrink(f);
+let u=await db.storage.from(HERO_BUCKET).upload(HERO_PATH,img,{
+upsert:true,
+contentType:"image/jpeg",
+cacheControl:"0"
+});
+if(u.error)throw u.error;
+$("heroFile").value="";
+showHero(Date.now());
+heroMsg("تم تحديث الصورة الرئيسية ✓")
+}catch(e){
+heroMsg(e.message||"تعذر رفع الصورة.");
+console.error("Hero upload:",e)
+}
+b.disabled=false
+};
+
+$("heroRemove").onclick=async()=>{
+if(!confirm("إزالة الصورة الرئيسية والعودة للتصميم الافتراضي؟"))return;
+try{
+await isCurrentAdmin();
+let r=await db.storage.from(HERO_BUCKET).remove([HERO_PATH]);
+if(r.error)throw r.error;
+showHero(null);
+heroMsg("تمت إزالة الصورة.")
+}catch(e){
+heroMsg(e.message||"تعذر إزالة الصورة.");
+console.error("Hero remove:",e)
+}
+};
+
 $("search").oninput=render;$("refresh").onclick=load;categories();load();loadHero();if(db){admin();db.channel("listings-live").on("postgres_changes",{event:"*",schema:"public",table:"listings"},load).subscribe();setInterval(load,45000)}if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));
